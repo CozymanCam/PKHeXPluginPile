@@ -14,25 +14,31 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: Show repository files
+        shell: pwsh
+        run: Get-ChildItem -Force -Recurse | Select-Object FullName
 
       - name: Run project build script
         shell: pwsh
-        run: ./build.ps1
+        run: |
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+          ./build.ps1
 
-      - name: Upload individual plugins
+      - name: Show build output
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "Searching for build outputs..."
+          Get-ChildItem -Force -Recurse -Include *.dll,*.zip |
+            Select-Object FullName, Length
+
+      - name: Upload all likely build outputs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: PKHeXPluginPile-individual-plugins
-          path: bin/Build/Individual/
-
-      - name: Upload combined plugin
-        uses: actions/upload-artifact@v4
-        with:
-          name: PKHeXPluginPile-combined
+          name: build-outputs
           path: |
-            bin/Build/PluginPile.dll
-            bin/PKHeXPluginPile.zip
+            **/bin/**/*.dll
+            **/bin/**/*.zip
+            **/*.zip
+          if-no-files-found: error
