@@ -1,0 +1,38 @@
+name: Build PKHeX Plugin Pile
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Run project build script
+        shell: pwsh
+        run: ./build.ps1
+
+      - name: Upload individual plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: PKHeXPluginPile-individual-plugins
+          path: bin/Build/Individual/
+
+      - name: Upload combined plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: PKHeXPluginPile-combined
+          path: |
+            bin/Build/PluginPile.dll
+            bin/PKHeXPluginPile.zip
